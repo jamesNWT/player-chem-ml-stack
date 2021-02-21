@@ -4,12 +4,17 @@
 // Step 4: accept response
 // Step 5: parse response into csv
 
-
-
 const { HLTV } = require('hltv')
 
-var myvar = HLTV.getMatch({id: 2306295})
+main();
 
-data = await myvar
+async function main() {
+    my_filter = {startDate: '2017-07-10', 
+                 endDate: '2017-07-18', 
+                 rankingFilter: 'Top20'};
 
-console.log(myvar)
+    my_data = await HLTV.getMatchesStats(my_filter);
+
+    console.log(my_data[0])
+
+}
