@@ -1,17 +1,7 @@
-// Step 1: accept input variables (date range, top n teams)
-// Step 2: create request to hltv server
-// Step 3: send request
-// Step 4: accept response
-// Step 5: parse response into csv
-
 'use strict';
 
 const { HLTV } = require('hltv');
 const args = require('yargs').argv;
-
-// var start_date  = args.start_date;
-// var end_date    = args.end_date;
-// var rank_filter = args.rank_filter;
 
 var mapsFilter = {
     startDate: args.start_date, 
@@ -42,7 +32,6 @@ async function main(mapsFilter) {
         mapIds.forEach(async mapId => {
 
             // wait a second so I dont get banned by cloudflare (hopefully)
-            // await sleep(1000)
             await new Promise(resolve => setTimeout(resolve, 1000)); 
             var match = await HLTV.getMatchMapStats({id: mapId});
             
@@ -64,16 +53,6 @@ async function main(mapsFilter) {
         });
     }
 }
-
-/**
- * sleep function copied from https://stackoverflow.com/a/41957152/12740018
- * @param {*} ms milliseconds to sleep for
- */
-function sleep(ms) {
-    return new Promise((resolve) => {
-      setTimeout(resolve, ms);
-    });
-  } 
 
 class MapPlayer {
     constructor(id, rating) {
