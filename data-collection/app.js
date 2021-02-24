@@ -4,26 +4,80 @@
 // Step 4: accept response
 // Step 5: parse response into csv
 
-const { HLTV } = require('hltv')
+'use strict';
 
-main();
+const { HLTV } = require('hltv');
+const args = require('yargs').argv;
 
-async function main() {
-    my_filter = {startDate: '2017-07-10', 
-                 endDate: '2017-07-18', 
-                 rankingFilter: 'Top20'};
+// var start_date  = args.start_date;
+// var end_date    = args.end_date;
+// var rank_filter = args.rank_filter;
+
+var mapsFilter = {
+    startDate: args.start_date, 
+    endDate: args.end_date, 
+    rankingFilter: args.rank_filter
+};
+
+main(mapsFilter);
+
+async function main(mapsFilter) {
     
-    my_match = {id: 2306295}    
+    var mapIds = await getMapIds(mapsFilter);
 
-    // my_data = await HLTV.getMatchesStats(my_filter);
-    // console.log(my_data[0])
+    await getPlayerStatsOverMaps(mapIds);
 
-    // my_data = await HLTV.getMatch(my_match);
-    // console.log(my_data.players.team1[0])
+    async function getMapIds(mapsFilter) {
+        var mapsOverview = await HLTV.getMatchesStats(mapsFilter);
 
-    my_data = await HLTV.getMatchMapStats({id: 29968});
-    console.log(my_data.playerStats.team1[0].rating)
+        var mapIds = [];
+        mapsOverview.forEach(element => {
+            mapIds.push(element.id);
+        });
 
-    my_player = await HLTV.getPlayer({id: 798});
-    // console.log(my_player)
+        return mapIds
+    }
+
+    async function getPlayerStatsOverMaps(mapIds) {
+        mapIds.forEach(async mapId => {
+
+            // wait a second so I dont get banned by cloudflare (hopefully)
+            // await sleep(1000)
+            await new Promise(resolve => setTimeout(resolve, 1000)); 
+            var match = await HLTV.getMatchMapStats({id: mapId});
+            
+            var team1Players = [];
+            var team2Players = [];
+            
+            match.playerStats.team1.forEach(element =>{
+                team1Players.push(
+                    new MapPlayer(element.id, element.rating)
+                )
+            });
+            match.playerStats.team2.forEach(player =>{
+                team2Players.push(
+                    new MapPlayer(player.id, player.rating)
+                )
+            });
+            
+            console.log(team1Players)
+        });
+    }
+}
+
+/**
+ * sleep function copied from https://stackoverflow.com/a/41957152/12740018
+ * @param {*} ms milliseconds to sleep for
+ */
+function sleep(ms) {
+    return new Promise((resolve) => {
+      setTimeout(resolve, ms);
+    });
+  } 
+
+class MapPlayer {
+    constructor(id, rating) {
+        this.id = id;
+        this.rating = rating;
+    }
 }
