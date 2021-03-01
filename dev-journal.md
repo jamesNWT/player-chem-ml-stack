@@ -13,3 +13,9 @@ Well, I was on my way to finishing the script but I've just gotten banned from
 making IP requests to HLTV.org. I've contacted a couple people at hltv to ask
 about getting whitelisted but I'm not holding out hope. I figure I can give them
 a day to get back to me and in the meantime think about back-up plans.
+
+### 2021-02-24 
+Turns out I'm not actually IP banned! I've also figured out how to actually get
+waiting to work so that's good. I've made an issue asking how severly I'll have 
+to slow requests down to avoid getting flagged in the future. I still need to 
+figure out how I'm going to represent this data.
