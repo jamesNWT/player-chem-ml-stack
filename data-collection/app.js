@@ -32,7 +32,7 @@ async function main(mapsFilter) {
     }
 
     async function getPlayerStatsOverMaps(mapIds) {
-        const waitTime = 5; 
+        const waitTime = 3.5; 
         var n = 0;
         
         for (const mapId of mapIds) {
@@ -60,14 +60,13 @@ async function main(mapsFilter) {
             console.log(team1Players);
             console.log(team2Players);
             
-            if (mapId != mapIds[-1]) {
+            if (mapId != mapIds[mapIds.length -1]) {
                 // wait some time so I dont get banned by cloudflare (hopefully)
                 console.log("waiting " + waitTime + " seconds for next request")
                 await sleep(waitTime * 1000);
             }
-            
-
         }
+        console.log("Successfully recieved all matches!")
     }
 }
 
