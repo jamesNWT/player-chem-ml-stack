@@ -1,5 +1,6 @@
-
 // test command: node ./data-collection/app.js --start_date 2021-02-21 --end_date 2021-02-23 --rank_filter Top10
+// should correspond to these matches: 
+// https://www.hltv.org/stats/matches?startDate=2021-02-21&endDate=2021-02-23&rankingFilter=Top10
 
 'use strict';
 
@@ -19,55 +20,55 @@ async function main(mapsFilter) {
     var mapIds = await getMapIds(mapsFilter);
 
     await getPlayerStatsOverMaps(mapIds);
+}
 
-    async function getMapIds(mapsFilter) {
-        var mapsOverview = await HLTV.getMatchesStats(mapsFilter);
+async function getMapIds(mapsFilter) {
+    var mapsOverview = await HLTV.getMatchesStats(mapsFilter);
 
-        var mapIds = [];
-        mapsOverview.forEach(element => {
-            mapIds.push(element.id);
+    var mapIds = [];
+    mapsOverview.forEach(element => {
+        mapIds.push(element.id);
+    });
+
+    return mapIds
+}
+
+async function getPlayerStatsOverMaps(mapIds) {
+    const waitTime = 3.5;
+    var n = 0;
+    
+    for (const mapId of mapIds) {
+        n++;
+
+        var match = await recursiveGetMatchMapStats(mapId);
+
+        console.log("Recieved match " + n);
+        console.log(match.map)
+
+        var team1Players = [];
+        var team2Players = [];
+
+        match.playerStats.team1.forEach(player => {
+            team1Players.push(
+                new MapPlayer(player.id, player.rating, player.name)
+            )
+        });
+        match.playerStats.team2.forEach(player => {
+            team2Players.push(
+                new MapPlayer(player.id, player.rating, player.name)
+            )
         });
 
-        return mapIds
-    }
+        console.log(team1Players);
+        console.log(team2Players);
 
-    async function getPlayerStatsOverMaps(mapIds) {
-        const waitTime = 3.5; 
-        var n = 0;
-        
-        for (const mapId of mapIds) {
-            n++;
-
-            var match = await recursiveGetMatchMapStats(mapId);
-             
-            console.log("Recieved match " + n);
-            console.log(match.map)
-            
-            var team1Players = [];
-            var team2Players = [];
-            
-            match.playerStats.team1.forEach(player =>{
-                team1Players.push(
-                    new MapPlayer(player.id, player.rating, player.name)
-                )
-            });
-            match.playerStats.team2.forEach(player =>{
-                team2Players.push(
-                    new MapPlayer(player.id, player.rating, player.name)
-                )
-            });
-            
-            console.log(team1Players);
-            console.log(team2Players);
-            
-            if (mapId != mapIds[mapIds.length -1]) {
-                // wait some time so I dont get banned by cloudflare (hopefully)
-                console.log("waiting " + waitTime + " seconds for next request")
-                await sleep(waitTime * 1000);
-            }
+        if (mapId != mapIds[mapIds.length - 1]) {
+            // wait some time so I dont get banned by cloudflare (hopefully)
+            console.log("waiting " + waitTime + " seconds for next request")
+            await sleep(waitTime * 1000);
         }
-        console.log("Successfully recieved all matches!")
     }
+    console.log("Successfully recieved all matches!")
 }
 
 // Recursively call HLTV.getMatchMapStats with a wait if cloudflare temporarily
@@ -85,8 +86,8 @@ async function recursiveGetMatchMapStats(mapId) {
         await sleep(1000*60*waitTime);
         return recursiveGetMatchMapStats(mapId);
     }
+}
 
-} 
 function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
