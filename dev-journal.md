@@ -19,3 +19,11 @@ Turns out I'm not actually IP banned! I've also figured out how to actually get
 waiting to work so that's good. I've made an issue asking how severly I'll have 
 to slow requests down to avoid getting flagged in the future. I still need to 
 figure out how I'm going to represent this data.
+
+### 2021-03-02
+Today and yesterday I tweaked the script. I added a catch for cloudflare
+timeouts, waiting 5 minutes if that happens to retry the request. I have no idea
+if that's enough time, right now cloudflare isnt even catching me if i dont wait
+at all. I made the wait time a command line variable. I now save a master list
+of players, and I store all the matches in a big list of objects. Now I have to
+turn that big list of objects into a csv that makes sense...

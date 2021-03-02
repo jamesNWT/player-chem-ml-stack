@@ -1,4 +1,4 @@
-// test command: node ./data-collection/app.js --start_date 2021-02-21 --end_date 2021-02-23 --rank_filter Top10
+// test command: node ./data-collection/app.js --start_date 2021-02-21 --end_date 2021-02-23 --rank_filter Top10 --wait_time 3.5
 // should correspond to these matches: 
 // https://www.hltv.org/stats/matches?startDate=2021-02-21&endDate=2021-02-23&rankingFilter=Top10
 
@@ -19,7 +19,13 @@ async function main(mapsFilter) {
     
     var mapIds = await getMapIds(mapsFilter);
 
-    await getPlayerStatsOverMaps(mapIds);
+    var results = await getPlayerStatsOverMaps(mapIds);
+
+    var playerMasterList = results[0];
+    var allMaps = results[1];
+
+    console.log(playerMasterList);
+    console.log(allMaps);
 }
 
 async function getMapIds(mapsFilter) {
@@ -34,41 +40,60 @@ async function getMapIds(mapsFilter) {
 }
 
 async function getPlayerStatsOverMaps(mapIds) {
-    const waitTime = 3.5;
+    if (args.wait_time) {
+        var waitTime = args.wait_time;   
+    }
+    else {
+        waitTime = 0;
+    }
+    
     var n = 0;
+    var allPlayers = [];
+    var allMaps = [];
     
     for (const mapId of mapIds) {
         n++;
 
         var match = await recursiveGetMatchMapStats(mapId);
 
-        console.log("Recieved match " + n);
-        console.log(match.map)
+        console.log("Recieved match " + n + " of " + mapIds.length);
 
         var team1Players = [];
         var team2Players = [];
 
         match.playerStats.team1.forEach(player => {
             team1Players.push(
-                new MapPlayer(player.id, player.rating, player.name)
-            )
+                new MapPlayer(player.rating, player.name)
+            );
+            if (!allPlayers.includes(player.name)) {
+                allPlayers.push(player.name);
+            }
         });
         match.playerStats.team2.forEach(player => {
             team2Players.push(
-                new MapPlayer(player.id, player.rating, player.name)
-            )
+                new MapPlayer(player.rating, player.name)
+            );
+            if (!allPlayers.includes(player.name)) {
+                allPlayers.push(player.name);
+            }
         });
 
-        console.log(team1Players);
-        console.log(team2Players);
+        const mapPlayed = new MapPlayed(
+            mapId, match.date, match.map, team1Players, team2Players
+        );
 
-        if (mapId != mapIds[mapIds.length - 1]) {
+        // console.log(JSON.stringify(mapPlayed));
+        // console.log(mapPlayed);
+        allMaps.push(mapPlayed)
+
+        if (mapId != mapIds[mapIds.length - 1] && waitTime != 0) {
             // wait some time so I dont get banned by cloudflare (hopefully)
             console.log("waiting " + waitTime + " seconds for next request")
             await sleep(waitTime * 1000);
         }
     }
     console.log("Successfully recieved all matches!")
+    return [allPlayers, allMaps];
 }
 
 // Recursively call HLTV.getMatchMapStats with a wait if cloudflare temporarily
@@ -93,9 +118,22 @@ function sleep(ms) {
 }
 
 class MapPlayer {
-    constructor(id, rating, name) {
-        this.id = id;
+    constructor(rating, name) {
         this.rating = rating;
         this.name = name;
+    }
+}
+
+/**
+ * Represents a map played. for the purpose of this program, map and match are
+ * synonomous.
+ */
+class MapPlayed {
+    constructor(id, date, map, team1, team2) {
+        this.id = id;
+        this.date = date;
+        this.map = map;
+        this.team1 = team1;
+        this.team2 = team2;
     }
 }
