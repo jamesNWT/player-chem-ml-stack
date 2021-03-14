@@ -1,4 +1,5 @@
-// test command: node ./data-collection/app.js --start_date 2021-02-21 --end_date 2021-02-23 --rank_filter Top10 --wait_time 3.5
+// test command: 
+// node ./data-collection/app.js --start_date 2021-02-21 --end_date 2021-02-23 --rank_filter Top10 --wait_time 3.5
 // should correspond to these matches: 
 // https://www.hltv.org/stats/matches?startDate=2021-02-21&endDate=2021-02-23&rankingFilter=Top10
 
@@ -26,8 +27,18 @@ async function main(mapsFilter) {
 
     console.log(playerMasterList);
     console.log(allMaps);
+
+    writePlayersToJSON(allMaps);
 }
 
+function writePlayersToJSON(allMaps) {
+    var fs = require('fs');
+    var json = JSON.stringify(allMaps);
+    fs.writeFile('allMaps.json', json, 'utf8', function(err) {
+        if (err) throw err;
+        console.log('Complete');
+    });
+}
 async function getMapIds(mapsFilter) {
     var mapsOverview = await HLTV.getMatchesStats(mapsFilter);
 
