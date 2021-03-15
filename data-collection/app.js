@@ -34,12 +34,15 @@ async function main(mapsFilter) {
 function writePlayersToJSON(allMaps) {
     var fs = require('fs');
     var json = JSON.stringify(allMaps);
-    fs.writeFile('allMaps.json', json, 'utf8', function(err) {
+    fs.writeFile('allMaps-big.json', json, 'utf8', function(err) {
         if (err) throw err;
         console.log('Complete');
     });
 }
 async function getMapIds(mapsFilter) {
+
+    // TODO: break down large date range to ranges of four days at a time
+    
     var mapsOverview = await HLTV.getMatchesStats(mapsFilter);
 
     var mapIds = [];
