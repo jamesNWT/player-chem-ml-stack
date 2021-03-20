@@ -1,9 +1,40 @@
 // test command: 
 // node ./data-collection/app.js --start_date 2021-02-21 --end_date 2021-02-23 --rank_filter Top10 --wait_time 3.5
+// node ./data-collection/app.js --start_date 2019-02-19 --end_date 2019-02-23 --rank_filter Top30 --wait_time 3.5
+// node ./data-collection/app.js --start_date 2019-01-01 --end_date 2020-03-19 --rank_filter Top30 --wait_time 3.5
 // should correspond to these matches: 
 // https://www.hltv.org/stats/matches?startDate=2021-02-21&endDate=2021-02-23&rankingFilter=Top10
+// https://www.hltv.org/stats/matches?startDate=2019-02-19&endDate=2019-02-23&rankingFilter=Top30
 
 'use strict';
+
+class MapPlayer {
+    constructor(rating, name) {
+        this.rating = rating;
+        this.name = name;
+    }
+}
+
+/**
+ * Represents a map played. for the purpose of this program, map and match are
+ * synonomous.
+ */
+class MapPlayed {
+    constructor(id, date, map, team1, team2) {
+        this.id = id;
+        this.date = date;
+        this.map = map;
+        this.team1 = team1;
+        this.team2 = team2;
+    }
+}
+
+class DateInterval {
+    constructor(start, end) {
+        this.start = start.toISOString().substr(0, 10);
+        this.end = end.toISOString().substr(0, 10);
+    }
+}
 
 const { HLTV } = require('hltv');
 const args = require('yargs').argv;
@@ -41,16 +72,55 @@ function writePlayersToJSON(allMaps) {
 }
 async function getMapIds(mapsFilter) {
 
-    // TODO: break down large date range to ranges of four days at a time
+    var intervals = breakdown_date_range(args.start_date, args.end_date);
+    console.log(intervals)
     
-    var mapsOverview = await HLTV.getMatchesStats(mapsFilter);
-
     var mapIds = [];
-    mapsOverview.forEach(element => {
-        mapIds.push(element.id);
-    });
+    var i = 0;
+    for (const interval of intervals) {
+        console.log("Getting matches batch ", i, " of ", intervals.length);
+
+        mapsFilter.startDate = interval.start;
+        mapsFilter.endDate   = interval.end;
+        console.log(mapsFilter)
+        var mapsOverview = await HLTV.getMatchesStats(mapsFilter);
+
+        mapsOverview.forEach(map => {
+            mapIds.push(map.id);
+        });
+        console.log("waiting 3.5 seconds");
+        await sleep(3500)
+        i++;
+    }
 
     return mapIds
+}
+
+function breakdown_date_range(start_date, end_date) {
+    var addDays = require('date-fns/addDays');
+    var compareAsc = require('date-fns/compareAsc')
+
+    const INTERVAL = 5;
+
+    const startDate = new Date(start_date);
+    const endDate = new Date(end_date);
+
+    var intervals = [];
+    
+    var currentDate = startDate
+    var nextDate = addDays(currentDate, INTERVAL);
+    while (compareAsc(nextDate, endDate) < 0) {
+        intervals.push(new DateInterval(currentDate, nextDate));
+        currentDate = addDays(nextDate, 1); // Start next intrvl day after last
+        nextDate = addDays(currentDate, INTERVAL)
+    }
+    if (compareAsc(nextDate, endDate) == 0) {
+        intervals.push(new DateInterval(currentDate, nextDate));
+    } else if (compareAsc(nextDate, endDate) > 0) {
+        intervals.push(new DateInterval(currentDate, endDate));
+    }
+
+    return intervals;
 }
 
 async function getPlayerStatsOverMaps(mapIds) {
@@ -129,25 +199,4 @@ async function recursiveGetMatchMapStats(mapId) {
 
 function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
-}
-
-class MapPlayer {
-    constructor(rating, name) {
-        this.rating = rating;
-        this.name = name;
-    }
-}
-
-/**
- * Represents a map played. for the purpose of this program, map and match are
- * synonomous.
- */
-class MapPlayed {
-    constructor(id, date, map, team1, team2) {
-        this.id = id;
-        this.date = date;
-        this.map = map;
-        this.team1 = team1;
-        this.team2 = team2;
-    }
 }
