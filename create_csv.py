@@ -5,18 +5,18 @@ import pandas as pd
 def make_player_list():
     with open('allMaps-big.json') as json_file:
         data = json.load(json_file)
+        
+        players_list = []
 
-    players_list = []
+        for cs_map in data:
+            for player in cs_map['team1']:
+                if player['name'] not in players_list:
+                    players_list.append(player['name'])
+            for player in cs_map['team2']:
+                if player['name'] not in players_list:
+                    players_list.append(player['name'])
 
-    for cs_map in data:
-        for player in cs_map['team1']:
-            if player['name'] not in players_list:
-                players_list.append(player['name'])
-        for player in cs_map['team2']:
-            if player['name'] not in players_list:
-                players_list.append(player['name'])
-
-    return  players_list
+        return  players_list
 
 players_list = make_player_list()
 numPlayers = len(players_list)
