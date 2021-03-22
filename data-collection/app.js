@@ -23,10 +23,12 @@ class MapPlayer {
  * synonomous.
  */
 class MapPlayed {
-    constructor(id, date, map, team1, team2) {
+    constructor(id, date, map, team1Score, team2Score, team1, team2) {
         this.id = id;
         this.date = date;
         this.map = map;
+        this.team1Score = team1Score;
+        this.team2Score = team2Score;
         this.team1 = team1;
         this.team2 = team2;
     }
@@ -161,12 +163,14 @@ async function getPlayerStatsOverMaps(mapIds) {
             }
         });
 
+        var team1Score = match.team1.score;
+        var team2Score = match.team2.score;
+
         const mapPlayed = new MapPlayed(
-            mapId, match.date, match.map, team1Players, team2Players
+            mapId, match.date, match.map, team1Score, 
+            team2Score, team1Players, team2Players
         );
 
-        // console.log(JSON.stringify(mapPlayed));
-        // console.log(mapPlayed);
         allMaps.push(mapPlayed)
 
         if (mapId != mapIds[mapIds.length - 1] && waitTime != 0) {
