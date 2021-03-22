@@ -1,12 +1,15 @@
 // test command: 
-// node ./data-collection/app.js --start_date 2021-02-21 --end_date 2021-02-23 --rank_filter Top10 --wait_time 3.5
-// node ./data-collection/app.js --start_date 2019-02-19 --end_date 2019-02-23 --rank_filter Top30 --wait_time 3.5
-// node ./data-collection/app.js --start_date 2019-01-01 --end_date 2020-03-19 --rank_filter Top30 --wait_time 3.5
+// node ./data-collection/app.js --start_date 2021-02-21 --end_date 2021-02-23 --rank_filter Top10 --wait_time 3.5 --file_out test.json
+// node ./data-collection/app.js --start_date 2019-02-19 --end_date 2019-02-23 --rank_filter Top30 --wait_time 3.5 --file_out test.json
+// node ./data-collection/app.js --start_date 2019-01-01 --end_date 2020-03-19 --rank_filter Top30 --wait_time 3.5 --file_out test.json
 // should correspond to these matches: 
 // https://www.hltv.org/stats/matches?startDate=2021-02-21&endDate=2021-02-23&rankingFilter=Top10
 // https://www.hltv.org/stats/matches?startDate=2019-02-19&endDate=2019-02-23&rankingFilter=Top30
 
 'use strict';
+
+const { HLTV } = require('hltv');
+const args = require('yargs').argv;
 
 class MapPlayer {
     constructor(rating, name) {
@@ -36,18 +39,22 @@ class DateInterval {
     }
 }
 
-const { HLTV } = require('hltv');
-const args = require('yargs').argv;
+if (args.wait_time) {
+    var waitTime = args.wait_time;   
+}
+else {
+    waitTime = 0;
+}
 
-var mapsFilter = {
-    startDate: args.start_date, 
-    endDate: args.end_date, 
-    rankingFilter: args.rank_filter
-};
+main();
 
-main(mapsFilter);
-
-async function main(mapsFilter) {
+async function main() {
+    
+    var mapsFilter = {
+        startDate: args.start_date, 
+        endDate: args.end_date, 
+        rankingFilter: args.rank_filter
+    };
     
     var mapIds = await getMapIds(mapsFilter);
 
@@ -65,7 +72,7 @@ async function main(mapsFilter) {
 function writePlayersToJSON(allMaps) {
     var fs = require('fs');
     var json = JSON.stringify(allMaps);
-    fs.writeFile('allMaps-big.json', json, 'utf8', function(err) {
+    fs.writeFile(args.file_out, json, 'utf8', function(err) {
         if (err) throw err;
         console.log('Complete');
     });
@@ -73,7 +80,6 @@ function writePlayersToJSON(allMaps) {
 async function getMapIds(mapsFilter) {
 
     var intervals = breakdown_date_range(args.start_date, args.end_date);
-    console.log(intervals)
     
     var mapIds = [];
     var i = 0;
@@ -82,14 +88,13 @@ async function getMapIds(mapsFilter) {
 
         mapsFilter.startDate = interval.start;
         mapsFilter.endDate   = interval.end;
-        console.log(mapsFilter)
-        var mapsOverview = await HLTV.getMatchesStats(mapsFilter);
+        var maps = await recursiveCallAPI(HLTV.getMatchesStats(mapsFilter));
 
-        mapsOverview.forEach(map => {
+        maps.forEach(map => {
             mapIds.push(map.id);
         });
-        console.log("waiting 3.5 seconds");
-        await sleep(3500)
+        console.log("waiting " + waitTime + " seconds");
+        await sleep(waitTime*1000)
         i++;
     }
 
@@ -124,12 +129,6 @@ function breakdown_date_range(start_date, end_date) {
 }
 
 async function getPlayerStatsOverMaps(mapIds) {
-    if (args.wait_time) {
-        var waitTime = args.wait_time;   
-    }
-    else {
-        waitTime = 0;
-    }
     
     var n = 0;
     var allPlayers = [];
@@ -138,7 +137,7 @@ async function getPlayerStatsOverMaps(mapIds) {
     for (const mapId of mapIds) {
         n++;
 
-        var match = await recursiveGetMatchMapStats(mapId);
+        var match = await recursiveCallAPI(HLTV.getMatchMapStats({id: mapId}));
 
         console.log("Recieved match " + n + " of " + mapIds.length);
 
@@ -182,18 +181,21 @@ async function getPlayerStatsOverMaps(mapIds) {
 
 // Recursively call HLTV.getMatchMapStats with a wait if cloudflare temporarily
 // bans me.
-async function recursiveGetMatchMapStats(mapId) {
-    const waitTime = 5;
+async function recursiveCallAPI(func) {
+    const longWaitTime = 2;
     try {
-        console.log("requesting match from HLTV")
-        var match = await HLTV.getMatchMapStats({id: mapId})
+        console.log("making request to hltv database")
+        var match = await func;
         return match;
     } catch(err) {
         
         console.log(err);
-        console.log("waiting " + waitTime + " minutes and trying again");
-        await sleep(1000*60*waitTime);
-        return recursiveGetMatchMapStats(mapId);
+        waitTime = waitTime+0.5
+        console.log("waiting " + longWaitTime 
+                    + " minutes and trying again, with " + waitTime 
+                    + " seconds between requests");
+        await sleep(1000*60*longWaitTime);
+        return recursiveCallAPI(func);
     }
 }
 
