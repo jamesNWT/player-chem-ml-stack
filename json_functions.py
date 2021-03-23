@@ -57,6 +57,9 @@ def create_df_simple(file_to_use):
     numPlayers = len(players_list)
 
     for index, game in raw_dataset.iterrows():
+
+        if len(game.team1) > 5 or len(game.team2) > 5:
+            continue
         roster_team1 = [0] * numPlayers
         roster_team2 = [0] * numPlayers
         rating_vector = [0]*10
@@ -77,3 +80,4 @@ def create_df_simple(file_to_use):
     return players_list, pd.DataFrame(processed_data, columns=['rosters vector',
                                                                'rating vector'])
 
+# a, b = create_df_simple('very-big.json')
