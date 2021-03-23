@@ -1,4 +1,8 @@
 /.vscode
+
+# pycache
+*.pyc
+
 # The following is from a default node .gitignore on google
 # Logs
 logs
