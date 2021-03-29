@@ -62,8 +62,13 @@ def create_example(team1, team2, players_list):
     return rosters_vector
 
 if __name__ == '__main__':
-    team1 = ['shox', 'ZywOo', 'NAF', 's1mple', 'FalleN']
-    team2 = ['autimatic', 'blameF', 'Brehze', 'broky', 'Bubzkji']
-    players_list = make_player_list('very_big.json')
-    vec = create_example(team1, team2, players_list)
-    print('done')
+    # team1 = ['shox', 'ZywOo', 'NAF', 's1mple', 'FalleN']
+    # team2 = ['autimatic', 'blameF', 'Brehze', 'broky', 'Bubzkji']
+    # players_list = make_player_list('very-big.json')
+    # vec = create_example(team1, team2, players_list)
+    # for i, num in enumerate(vec):
+    #     if num == 1:
+    #         if i >= len(players_list):
+    #             i = i - len(players_list)
+    #         print(players_list[i])
+    # print('done')
