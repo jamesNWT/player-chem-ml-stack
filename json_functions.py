@@ -51,6 +51,54 @@ def create_df_simple(file_to_use):
     return players_list, pd.DataFrame(processed_data, columns=['rosters vector',
                                                                'rating vector'])
 
+def create_df_fixed(file_to_use, mirror=True):
+    import numpy as np
+    raw_dataset = pd.read_json(file_to_use)
+    processed_data = []
+
+    players_list = make_player_list(file_to_use)
+    numPlayers = len(players_list)
+
+    for index, game in raw_dataset.iterrows():
+
+        if len(game.team1) > 5 or len(game.team2) > 5:
+            continue
+        roster_team1 = [0] * numPlayers
+        roster_team2 = [0] * numPlayers
+        rating_vector = [[0, 0.]] * 10
+        rating_vector = np.array(rating_vector)
+
+        # populate the team 1 roster and performance vectors
+        for i, player in enumerate(game.team1):
+            player_index = players_list.index(player['name'])
+            roster_team1[player_index] = 1
+            rating_vector[i][0] = player_index
+            rating_vector[i][1] = round(float(player['rating']), 3)
+        # populate the team 2 roster and performance vectors
+        for i, player in enumerate(game.team2):
+            player_index = players_list.index(player['name'])
+            roster_team2[player_index] = 1
+            rating_vector[i+5][0] = player_index
+            rating_vector[i+5][1] = round(float(player['rating']), 3)
+        
+        # sort ratings acording to corresponding player index
+        rating_vector = rating_vector[rating_vector[:,0].argsort()]
+
+        # put it all together in row, keep only ratings part of rating vector
+        row = [roster_team1+roster_team2, rating_vector[:,1].tolist()]
+        processed_data.append(row)
+
+        if mirror:
+            # now flip the teams around and add that to the training data
+            temp = rating_vector[:,1].tolist()
+            rating_vector_mirrored = temp[5:10] + temp[0:5]
+            
+            row_mirrored = [roster_team2+roster_team1, rating_vector_mirrored]
+            processed_data.append(row_mirrored)
+
+    return players_list, pd.DataFrame(processed_data, columns=['rosters vector',
+                                                               'rating vector'])
+
 def create_df_big_output(file_to_use, mirror=True):
     raw_dataset = pd.read_json(file_to_use)
     processed_data = []
@@ -102,17 +150,7 @@ def create_example(team1, team2, players_list):
         rosters_vector[i+len(players_list)] = 1
     return rosters_vector
 
-# if __name__ == '__main__':
-#     players_list, df = create_df_simple('very-big.json')
-#     print(sorted(players_list))
-#     team1 = ['shox', 'ZywOo', 'NAF', 's1mple', 'FalleN']
-#     team2 = ['autimatic', 'blameF', 'Brehze', 'broky', 'Bubzkji']
-#     players_list = make_player_list('very_big.json')
-#     vec = create_example(team1, team2, players_list)
-#     print('done')
-
-    if mirror:
-        # now flip the teams around and add that to the training data
-        rating_vector_mirrored = rating_vector[5:10]+rating_vector[0:5]
-        row_mirrored = [roster_team2+roster_team1, rating_vector_mirrored]
-        processed_data.append(row_mirrored)
+if __name__ == '__main__':
+    players_list, df = create_df_fixed('allMaps-small.json')
+    # print(sorted(players_list))
+    print('done')
