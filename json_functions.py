@@ -5,8 +5,8 @@ import pandas as pd
 file_to_use = "test.json"
 
 def make_player_list(file_to_use):
-    with open(file_to_use) as json_file:
-        data = json.load(json_file)
+    with open(file_to_use, encoding="utf-8") as json_file:
+        data = json.load(json_file) 
         
         players_list = []
 
@@ -61,9 +61,11 @@ def create_example(team1, team2, players_list):
         rosters_vector[i+len(players_list)] = 1
     return rosters_vector
 
-if __name__ == '__main__':
-    team1 = ['shox', 'ZywOo', 'NAF', 's1mple', 'FalleN']
-    team2 = ['autimatic', 'blameF', 'Brehze', 'broky', 'Bubzkji']
-    players_list = make_player_list('very_big.json')
-    vec = create_example(team1, team2, players_list)
-    print('done')
+# if __name__ == '__main__':
+#     players_list, df = create_df_simple('very-big.json')
+#     print(sorted(players_list))
+#     team1 = ['shox', 'ZywOo', 'NAF', 's1mple', 'FalleN']
+#     team2 = ['autimatic', 'blameF', 'Brehze', 'broky', 'Bubzkji']
+#     players_list = make_player_list('very_big.json')
+#     vec = create_example(team1, team2, players_list)
+#     print('done')
