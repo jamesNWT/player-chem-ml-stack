@@ -123,7 +123,10 @@ def create_df_big_output(file_to_use, mirror=True):
         for i, player in enumerate(game.team2):
             player_index = players_list.index(player['name'])
             roster_team2[player_index] = 1
-            rating_vector[player_index] = round(float(player['rating']), 3)
+            rating_vector[player_index + numPlayers] = round(
+                                                        float(player['rating']),
+                                                        3
+                                                    )
         row = [roster_team1+roster_team2, rating_vector]
         processed_data.append(row)
     
