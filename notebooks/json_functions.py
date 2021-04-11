@@ -26,13 +26,13 @@ def get_teammates(player, file_to_use):
 
         all_teammates = []
         for cs_map in data:
-            if player in cs_map['team1']['name']:
-                for teammate in cs_map['team1']['name']:
+            if player in [tm['name'] for tm in cs_map['team1']]:
+                for teammate in [tm['name'] for tm in cs_map['team1']]:
                     if teammate not in all_teammates:
                         all_teammates.append(teammate)
 
-            elif player in cs_map['team2']['name']:
-                for teammate in cs_map['team2']['name']:
+            elif player in [tm['name'] for tm in cs_map['team2']]:
+                for teammate in [tm['name'] for tm in cs_map['team2']]:
                     if teammate not in all_teammates:
                         all_teammates.append(teammate)
         
@@ -178,5 +178,5 @@ def create_example(team1, team2, players_list):
     return rosters_vector
 
 if __name__ == '__main__':
-    teammates= get_teammates('karrigan', '../data/very-big.json')
+    teammates= get_teammates('s1mple', 'data/very-big.json')
     print('done')
