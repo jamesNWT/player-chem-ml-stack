@@ -20,6 +20,30 @@ def make_player_list(file_to_use):
 
         return  players_list
 
+def get_teammates(player, file_to_use):
+    with open(file_to_use, encoding="utf-8") as json_file:
+        data = json.load(json_file)
+
+        all_teammates = []
+        for cs_map in data:
+            if player in cs_map['team1']['name']:
+                for teammate in cs_map['team1']['name']:
+                    if teammate not in all_teammates:
+                        all_teammates.append(teammate)
+
+            elif player in cs_map['team2']['name']:
+                for teammate in cs_map['team2']['name']:
+                    if teammate not in all_teammates:
+                        all_teammates.append(teammate)
+        
+        all_teammates.remove(player)
+        # # remove the player in question from list of temmates he appeared with
+        # while(player in teammates):
+        #     all_teammates.remove(player)
+        return all_teammates
+            
+            
+
 def create_df_simple(file_to_use):
     raw_dataset = pd.read_json(file_to_use)
     processed_data = []
@@ -154,6 +178,5 @@ def create_example(team1, team2, players_list):
     return rosters_vector
 
 if __name__ == '__main__':
-    players_list, df = create_df_fixed('allMaps-small.json')
-    # print(sorted(players_list))
+    teammates= get_teammates('karrigan', '../data/very-big.json')
     print('done')
