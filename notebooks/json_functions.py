@@ -20,7 +20,7 @@ def make_player_list(file_to_use):
 
         return  players_list
 
-def get_teammates(player, file_to_use):
+def get_teammates(player, file_to_use, min_games_together):
     with open(file_to_use, encoding="utf-8") as json_file:
         data = json.load(json_file)
 
@@ -28,18 +28,25 @@ def get_teammates(player, file_to_use):
         for cs_map in data:
             if player in [tm['name'] for tm in cs_map['team1']]:
                 for teammate in [tm['name'] for tm in cs_map['team1']]:
-                    if teammate not in all_teammates:
-                        all_teammates.append(teammate)
+                    all_teammates.append(teammate)
 
             elif player in [tm['name'] for tm in cs_map['team2']]:
                 for teammate in [tm['name'] for tm in cs_map['team2']]:
-                    if teammate not in all_teammates:
-                        all_teammates.append(teammate)
+                    all_teammates.append(teammate)
         
-        all_teammates.remove(player)
-        # # remove the player in question from list of temmates he appeared with
-        # while(player in teammates):
-        #     all_teammates.remove(player)
+        for teammate in all_teammates:
+            games_appeared_in = all_teammates.count(teammate)
+            if games_appeared_in < min_games_together:
+                while(teammate in all_teammates):
+                    all_teammates.remove(teammate)
+            else:
+                for i in range(games_appeared_in - 1):
+                    all_teammates.remove(teammate)
+
+        # remove the player in question from list of temmates he appeared with
+        while(player in all_teammates):
+            all_teammates.remove(player)
+
         return all_teammates
             
             
@@ -178,5 +185,5 @@ def create_example(team1, team2, players_list):
     return rosters_vector
 
 if __name__ == '__main__':
-    teammates= get_teammates('s1mple', 'data/very-big.json')
+    teammates= get_teammates('karrigan', 'data/very-big.json', 5)
     print('done')
